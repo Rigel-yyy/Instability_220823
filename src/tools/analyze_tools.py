@@ -22,10 +22,9 @@ class Image:
             force update on self.binary_image when update == True
         """
         if self.binary_image is None or update:
-            mat_sel1 = np.where(self.data > low_bound, 1, 0)
-            mat_sel2 = np.where(self.data < up_bound, 1, 0)
+            sel = (self.data > low_bound) & (self.data < up_bound)
             self.binary_image = \
-                BinaryImage(mat_sel1 * mat_sel2, low_bound, up_bound)
+                BinaryImage(np.where(sel, 1, 0), low_bound, up_bound)
         return self.binary_image
 
     def get_grey_image(self, update: bool = False):

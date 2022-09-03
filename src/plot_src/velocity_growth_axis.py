@@ -5,6 +5,7 @@ from .base_figure import BaseFigure
 from src.tools.analyze_tools import Image
 from src.tools.plot_tools import makeAnimation
 from src.tools.num_tools import div2D
+from src.model.active_growth import PressureConstrainedGrowth
 
 if TYPE_CHECKING:
     from src.model.two_fluid_model import TwoFluidModel
@@ -21,7 +22,8 @@ class VelocityGrowthAxis:
         self.y_grid = np.arange(model.N_ROW) * model.GRID
 
     def _v_theory(self):
-        phi_binary_img = Image(self.model.phi).get_binary_image(self.model.PHI_CELL-0.2, 1)
+        phi_binary_img = Image(self.model.phi).\
+            get_binary_image(self.model.PHI_CELL-0.005, 1)
         cell_x_width = phi_binary_img.get_x_width()
         cell_y_width = self.model.N_ROW
         growth_eff = np.sum(self.model.growth) / (cell_x_width * cell_y_width)
@@ -45,13 +47,21 @@ class VelocityGrowthAxis:
                           f"Δx={self.model.view_moved * self.model.GRID:.2E}")
 
         color = 'tab:red'
-        ax1_phi.plot(self.x_grid, self.model.phi[des_row, :], color=color, label="phi")
+        ax1_phi.plot(self.x_grid, self.model.phi[des_row, :],
+                     color=color, label="phi")
         ax1_phi.set_ylabel(r'$\phi$', color=color)
 
         color = 'tab:blue'
         ax1_growth = ax1_phi.twinx()
-        ax1_growth.plot(self.x_grid, self.model.growth[des_row, :], color=color, label="growth")
+        ax1_growth.plot(self.x_grid, self.model.growth[des_row, :],
+                        color=color, label="growth")
         ax1_growth.set_ylabel(r'$\lambda$, -$\nabla \cdot (\phi v_{c})$', color=color)
+
+        if isinstance(self.model.growth_func, PressureConstrainedGrowth):
+            full_growth = self.model.growth_func.calc_full_growth(self.model.phi)
+            ax1_growth.plot(self.x_grid, full_growth[des_row, :],
+                            color='tab:cyan', linestyle='--',
+                            label="no_restrict_growth")
 
         color = 'tab:orange'
         convection = -div2D(self.model.phi * self.model.v_cell,

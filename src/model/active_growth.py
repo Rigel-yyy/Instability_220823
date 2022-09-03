@@ -109,8 +109,14 @@ class PressureConstrainedGrowth(ActiveGrowth):
     def get_p_constrain(form: str, **kwargs):
         if form == "exp":
             return ExpDecay(threshold=kwargs["threshold"])
+
         elif form == "step":
-            return StepConstrain(threshold=kwargs["threshold"])
+            if "theta_width_ratio" in kwargs:
+                return StepConstrain(threshold=kwargs["threshold"],
+                                     theta_width_ratio=kwargs["theta_width_ratio"])
+            else:
+                return StepConstrain(threshold=kwargs["threshold"])
+
         elif form == "poly":
             if "H" in kwargs:
                 return HillConstrain(threshold=kwargs["threshold"],

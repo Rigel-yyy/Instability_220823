@@ -218,7 +218,7 @@ class TwoFluidModel(ModelStatus):
             except (FloatingPointError, RuntimeError):
                 self.save_current_frame()
                 self.save_frame_info()
-                msg = f'Simulation ended at t = {self.sim_time} with {self.frame_now} frames saved.'
+                msg = f'Simulation ended at t = {self.sim_time:.5e} with {self.frame_now} frames saved.'
                 RuntimeLogging().error(msg, exc_info=True)
                 raise
 

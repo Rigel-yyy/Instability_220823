@@ -29,15 +29,14 @@ class StepConstrain:
     if p > pc => 0, else => 1
     """
 
-    def __init__(self, threshold, theta_width=None):
-        if theta_width is None:
-            theta_width = 0.1 * threshold
+    def __init__(self, threshold, theta_width_ratio=0.1):
+        self.threshold = threshold
         self.theta_func = SmoothStepTanh(
             mode="step",
             step_1=1,
             step_2=0,
             x_mid=threshold,
-            width=theta_width
+            width=theta_width_ratio * threshold
         )
 
     def f(self, mat: ScalarField2D):
