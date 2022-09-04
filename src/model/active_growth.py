@@ -17,17 +17,17 @@ from .base_model import BaseModel
 
 class ActiveGrowth(BaseModel):
 
-    def __init__(self):
+    def __init__(self, phi_threshold=0.65):
         super().__init__()
         self.growth_func = SmoothSquareTanh(
             mode="step",
             step_1=0,
             step_2=self.GROWTH_RATE,
             l_bound=self.PHI_CELL - 0.005,
-            r_bound=self.PHI_CELL + 0.065,
+            r_bound=self.PHI_CELL + phi_threshold,
             width=0.005
         )
-        self.recent_f = None
+        self.recent_f = None  # 保存最近一次计算得到的growth rate
 
     def get_growth_term(self, phi: ScalarField2D, **kwargs):
         raise NotImplementedError
@@ -61,39 +61,42 @@ class FullGrowth(ActiveGrowth):
 
 class InitConstrainedGrowth(ActiveGrowth):
 
-    def __init__(self, threshold=None):
-        super().__init__()
+    def __init__(self, rate_threshold=None, **kwargs):
+        super().__init__(**kwargs)
         self.growth_mask = None
-        self.threshold = self.set_threshold(threshold)
-        self.recent_full_f = None
+        self.rate_threshold = self.set_threshold(rate_threshold)
+        self.recent_full_f = None  # 保存最近一次计算所得的完全生长状态的值
 
-    def set_threshold(self, threshold):
-        if threshold is None:
+    def set_threshold(self, rate_threshold):
+        if rate_threshold is None:
             return 0.05 * self.GROWTH_RATE
         else:
-            return threshold
+            return rate_threshold
 
     def get_growth_term(self, phi: ScalarField2D, **kwargs):
         self.recent_full_f = self.growth_func.f(phi)
 
         if self.growth_mask is None:
-            self.growth_mask = self.recent_full_f > self.threshold
+            self.growth_mask = self.recent_full_f > self.rate_threshold
 
         self.recent_f = np.where(self.growth_mask, self.recent_full_f, 0)
         return self.recent_f
 
     def __str__(self):
         growth_info = super().__str__() + "\n"
-        constrain_info = f'threshold phi for initial growth: {self.threshold:.4e}'
+        constrain_info = f'rate_threshold phi for initial growth: {self.rate_threshold:.4e}'
         return growth_info + constrain_info
 
 
 class PressureConstrainedGrowth(ActiveGrowth):
 
-    def __init__(self, form: str, **kwargs):
-        super().__init__()
-        self.constrain_func = self.get_p_constrain(form, **kwargs)
-        self.recent_full_f = None
+    def __init__(self, form: str,
+                 p_threshold: float,
+                 theta_width_ratio: float = None,
+                 H: int = None, **kwargs):
+        super().__init__(**kwargs)
+        self.constrain_func = self.get_p_constrain(form, p_threshold, theta_width_ratio, H)
+        self.recent_full_f = None  # 保存最近一次计算所得的完全生长状态的值
 
     def calc_full_growth(self, phi: ScalarField2D):
         self.recent_full_f = self.growth_func.f(phi)
@@ -106,25 +109,25 @@ class PressureConstrainedGrowth(ActiveGrowth):
         return self.recent_f
 
     @staticmethod
-    def get_p_constrain(form: str, **kwargs):
+    def get_p_constrain(form: str, p_threshold: float, theta_width_ratio: float, H: int):
         if form == "exp":
-            return ExpDecay(threshold=kwargs["threshold"])
+            return ExpDecay(threshold=p_threshold)
 
         elif form == "step":
-            if "theta_width_ratio" in kwargs:
-                return StepConstrain(threshold=kwargs["threshold"],
-                                     theta_width_ratio=kwargs["theta_width_ratio"])
+            if theta_width_ratio is not None:
+                return StepConstrain(threshold=p_threshold,
+                                     theta_width_ratio=theta_width_ratio)
             else:
-                return StepConstrain(threshold=kwargs["threshold"])
+                return StepConstrain(threshold=p_threshold)
 
         elif form == "poly":
-            if "H" in kwargs:
-                return HillConstrain(threshold=kwargs["threshold"],
-                                     poly_index=kwargs["H"])
+            if H is not None:
+                return HillConstrain(threshold=p_threshold,
+                                     poly_index=H)
             else:
-                return HillConstrain(threshold=kwargs["threshold"])
+                return HillConstrain(threshold=p_threshold)
 
-    # TODO 设计有待改进
+    # 设计有待改进
     def d_dp_growth(self, p: ScalarField2D, phi: ScalarField2D = None):
         if phi is None:
             return self.recent_full_f * self.constrain_func.df(p)

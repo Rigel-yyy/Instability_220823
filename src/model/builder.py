@@ -95,16 +95,18 @@ class ModelBuilder(BaseModel):
     def set_growth_function(self, constrain_type: str = None, **kwargs):
         """
         e.g. builder.set_growth_function(constrain_type = None)
-             builder.set_growth_function(constrain_type = "init", threshold = None)
+             builder.set_growth_function(constrain_type = "init", rate_threshold = None)
              builder.set_growth_function(constrain_type = "pressure",
                                          form = "step",
-                                         threshold = 10)
+                                         p_threshold = 10,
+                                         theta_width_ratio = 0.1,
+                                         phi_threshold = 0.65)
         """
         if not self.GROWTH_RATE:
-            self.growth_func = OffGrowth()
+            self.growth_func = OffGrowth(**kwargs)
         else:
             if constrain_type is None:
-                self.growth_func = FullGrowth()
+                self.growth_func = FullGrowth(**kwargs)
             elif constrain_type == "init":
                 self.growth_func = InitConstrainedGrowth(**kwargs)
             elif constrain_type == "pressure":

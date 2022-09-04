@@ -14,11 +14,11 @@ if TYPE_CHECKING:
     from src.model.two_fluid_model import TwoFluidModel
 
 
-def run(job_array_id: int, csv_file_name: str = None):
-    if csv_file_name is None:
-        csv_file_name = __name__.split('.')[-1]
+def run(job_array_id: int, csv_name_stem: str = None):
+    if csv_name_stem is None:
+        csv_name_stem = __name__.split('.')[-1]
 
-    param = CsvParamParser(name_stem=csv_file_name).read_param(job_array_id)
+    param = CsvParamParser(name_stem=csv_name_stem).read_param(job_array_id)
 
     config = {
         "N_ROW": 40,
@@ -76,7 +76,7 @@ def run(job_array_id: int, csv_file_name: str = None):
     builder.set_view_move(engine="off")
 
     comment = "[bjx_run]在不同的压强threshold限制下，改变压强限制函数看能否逼近理论值"
-    slurm_info = f"从 {csv_file_name}.csv 中获取 job_array_id = {job_array_id} 的参数列表{param}"
+    slurm_info = f"从 {csv_name_stem}.csv 中获取 job_array_id = {job_array_id} 的参数列表{param}"
 
     model = builder.build_model()
 

@@ -33,7 +33,6 @@ class ModelLogging:
     def _log_title(cls, title_name):
         print(f'{title_name:=^40}', file=open(cls.setting_file, "a+"))
 
-    # TODO new_tools中的类没有设计__str__
     @classmethod
     def log_boundary_condition(cls, bc_name: str, bc: "OperatorLib"):
         cls._log_title(bc_name)

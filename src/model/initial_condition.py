@@ -17,19 +17,24 @@ from .base_model import BaseModel
 
 class InitialCondition(BaseModel):
 
-    def __init__(self, perturb_type, **kwargs):
+    def __init__(self, perturb_type: PerturbType,
+                 noise: float,
+                 period: int = None,
+                 max_period: int = None):
         super().__init__()
         self.perturb_type = perturb_type
         self.transition = 2 * np.sqrt(self.SURF / self.NRG)
-        self.noise_func = self.get_noise_func(**kwargs)
+        self.noise_func = self.get_noise_func(noise, period, max_period)
 
-    def get_noise_func(self, **kwargs):
+    def get_noise_func(self, noise: float,
+                       period: int = None,
+                       max_period: int = None):
         if self.perturb_type == PerturbType.SINGLE_SINE:
-            wave_num = 2 * np.pi * kwargs["period"] / (self.N_ROW - 1)
-            return SingleSine(kwargs["noise"], wave_num)
+            wave_num = 2 * np.pi * period / (self.N_ROW - 1)
+            return SingleSine(noise, wave_num)
         elif self.perturb_type == PerturbType.MULTI_SINE:
-            wave_num_arr = 2 * np.pi * np.arange(kwargs["max_period"]) / (self.N_ROW - 1)
-            return MultipleSine(kwargs["noise"], wave_num_arr)
+            wave_num_arr = 2 * np.pi * np.arange(max_period) / (self.N_ROW - 1)
+            return MultipleSine(noise, wave_num_arr)
 
     def set_phi_init(self):
         raise NotImplementedError
