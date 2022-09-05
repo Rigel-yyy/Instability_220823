@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 import numpy as np
 
 from .base_figure import BaseFigure
@@ -58,7 +58,7 @@ class P0ViProfile:
 
         ax.plot(xI, vI, color='tab:red', label="$v_I$_theory")
 
-    def run(self, frame_range=None):
+    def run(self, frame_range: Iterable = None):
         if frame_range is None:
             max_frame = len(self.model.sim_time_frame)
             frame_range = range(max_frame)

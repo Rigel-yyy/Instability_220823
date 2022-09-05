@@ -41,6 +41,13 @@ class Image:
         img = self.get_grey_image()
         return cv.Canny(img, 100, 150)
 
+    def get_front_most(self, direction="right"):
+        edge = self.get_edge()
+        if direction == "right":
+            return np.max(np.argwhere(np.count_nonzero(edge, axis=0) >= 2))
+        elif direction == "left":
+            return np.min(np.argwhere(np.count_nonzero(edge, axis=0) >= 2))
+
 
 class BinaryImage:
     def __init__(self, mat: ScalarField2D,

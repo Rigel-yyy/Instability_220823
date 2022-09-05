@@ -100,7 +100,7 @@ class ModelBuilder(BaseModel):
                                          form = "step",
                                          p_threshold = 10,
                                          theta_width_ratio = 0.1,
-                                         phi_threshold = 0.65)
+                                         phi_threshold = 0.065)
         """
         if not self.GROWTH_RATE:
             self.growth_func = OffGrowth(**kwargs)
