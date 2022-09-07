@@ -36,6 +36,7 @@ class ModelBuilder(BaseModel):
         self.growth_func = None
         self.p_solver = None
         self.view_move_engine = None
+        self.sim_termination = None
 
     def set_phi_bound_condition(self, bound_type, bound_value):
         shape = (self.N_ROW, self.N_COLUMN)
@@ -150,6 +151,9 @@ class ModelBuilder(BaseModel):
             self.view_move_engine = OffViewMove(self.phi_bound, self.p_bound)
         elif engine == "tissue_center":
             self.view_move_engine = HoldTissueCenter(self.phi_bound, self.p_bound)
+
+    def set_sim_termination(self, termination=True):
+        self.sim_termination = termination
 
     def build_model(self):
         return TwoFluidModel(self)

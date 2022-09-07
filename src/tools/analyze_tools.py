@@ -42,11 +42,19 @@ class Image:
         return cv.Canny(img, 100, 150)
 
     def get_front_most(self, direction="right"):
+        """
+        get front end index of current grey image
+        :param direction:
+        :return: find edge -> int, edge not found -> None
+        """
         edge = self.get_edge()
-        if direction == "right":
-            return np.max(np.argwhere(np.count_nonzero(edge, axis=0) >= 2))
-        elif direction == "left":
-            return np.min(np.argwhere(np.count_nonzero(edge, axis=0) >= 2))
+        if np.sum(edge) >= 255 * 2:
+            if direction == "right":
+                return np.max(np.argwhere(np.count_nonzero(edge, axis=0) >= 2))
+            elif direction == "left":
+                return np.min(np.argwhere(np.count_nonzero(edge, axis=0) >= 2))
+        else:
+            return None
 
 
 class BinaryImage:

@@ -158,6 +158,7 @@ class TwoFluidModel(ModelStatus):
         self.growth_func: "ActiveGrowth" = builder.growth_func
         self.p_solver: "PressureSolver" = builder.p_solver
         self.view_move_engine: "ViewMove" = builder.view_move_engine
+        self.sim_termination: bool = builder.sim_termination
         self.logging = ModelLogging()
 
     def save_model(self):
@@ -188,7 +189,7 @@ class TwoFluidModel(ModelStatus):
 
             task = progress.add_task("[cyan]Solving PDE", total=self.T_FINAL)
             try:
-                total_n_step = int(self.T_FINAL / self.T_STEP)
+                total_n_step = int(self.T_FINAL / self.T_STEP) + 1
                 for step in range(total_n_step):
                     self.sim_time = step * self.T_STEP
 
@@ -207,10 +208,14 @@ class TwoFluidModel(ModelStatus):
                     if self.sim_time >= frame_step * self.frame_now:
                         self.save_current_frame()
                         progress.update(task, completed=self.sim_time)
+                    if self.loop_terminate():
+                        msg = f'Boundary reached at t = {self.sim_time:.5e}, loop termination triggered.'
+                        RuntimeLogging().warning(msg)
+                        break
 
-                self.sim_time = self.T_FINAL
+                self.sim_time += self.T_STEP
                 self.save_current_frame()
-                progress.update(task, completed=self.T_FINAL)
+                progress.update(task, completed=min(self.T_FINAL, self.sim_time))
 
                 self.save_frame_info()
 
@@ -314,3 +319,9 @@ class TwoFluidModel(ModelStatus):
             d_phi += self.growth * (1 - self.phi)
 
         self.phi += self.T_STEP * d_phi
+
+    def loop_terminate(self) -> bool:
+        if self.sim_termination:
+            return np.count_nonzero(self.phi[:, -3:] > 0.5) >= 5
+        else:
+            return False

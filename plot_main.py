@@ -9,11 +9,9 @@ if TYPE_CHECKING:
     from src.model.two_fluid_model import TwoFluidModel
 
 if __name__ == "__main__":
-    date_str = '220906'
-    order_str = '002'
-    working_path = Path('..').joinpath('results').\
-        joinpath(date_str).\
-        joinpath(order_str)
+    date_str = '220907'
+    order_str = '004'
+    working_path = Path('../results').joinpath(date_str).joinpath(order_str)
 
     with working_directory(working_path):
         with open('model.pkl', 'rb') as file:

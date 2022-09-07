@@ -18,6 +18,7 @@ class BaseModel:
 
     @staticmethod
     def set_config(config):
+        # 修改全局变量的指定入口
         for name in BaseModel.__slots__:
             setattr(BaseModel, name, config[name])
 

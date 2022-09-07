@@ -25,15 +25,18 @@ class FrontProfile:
             max_frame = len(self.model.sim_time_frame)
             frame_range = range(max_frame)
 
-        x_front_arr = np.zeros(len(frame_range))
-        t_arr = np.zeros(len(frame_range))
+        x_front_arr = []
+        t_arr = []
 
         for n_frame in frame_range:
             self.model.load_frame(n_frame)
-            t_arr[n_frame] = self.model.sim_time
-            x_front_arr[n_frame] = Image(self.model.phi)\
-                                   .get_front_most(direction="right") * self.model.GRID
+            front_idx = Image(self.model.phi).get_front_most(direction="right")
+            if front_idx is not None:
+                t_arr.append(self.model.sim_time)
+                x_front_arr.append(front_idx * self.model.GRID)
 
+        x_front_arr = np.array(x_front_arr)
+        t_arr = np.array(t_arr)
         t_checkpoint = interpolate.interp1d(x_front_arr,
                                             t_arr,
                                             fill_value="extrapolate")(self.x_checkpoint)

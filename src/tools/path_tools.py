@@ -1,6 +1,7 @@
 import os
+import time
 from contextlib import contextmanager
-from pathlib import Path, PurePath
+from pathlib import Path
 
 from .day_tools import getTimeStamp
 
@@ -25,30 +26,37 @@ def working_directory(path):
         os.chdir(prev_cwd)
 
 
-def get_save_path(resPath, dayStamp=None, name=None):
+def get_save_path(res_path, day_stamp=None, name=None, max_retry=100):
     """
     by default simulation results are saved in path: results/220621/003
+    max_retry on creating order dir
     """
 
-    if dayStamp is None:
-        dayStamp = getTimeStamp(minute=False)
-    tempPathName = PurePath(resPath).joinpath(dayStamp)
-    Path(tempPathName).mkdir(exist_ok=True)
+    if day_stamp is None:
+        day_stamp = getTimeStamp(minute=False)
 
-    if name is None:
-        dirPathList = get_all_dir(str(tempPathName))
-        orderList = [extract_order(item) for item in dirPathList
-                     if extract_order(item) is not None]
-        if not orderList:
-            maxOrder = 0
-        else:
-            maxOrder = max(orderList)
-        name = str(maxOrder + 1).zfill(3)
+    path_to_day_result = Path(res_path).joinpath(day_stamp)
+    path_to_day_result.mkdir(exist_ok=True)
 
-    tempPathName = tempPathName.joinpath(name)
-    pathObj = Path(tempPathName)
-    pathObj.mkdir()
-    return pathObj
+    for _ in range(max_retry):
+        if name is None:
+            sim_order_list = [extract_order(item) for item in get_all_dir(str(path_to_day_result))
+                                                  if extract_order(item) is not None]
+
+            if not sim_order_list:
+                max_order = 0
+            else:
+                max_order = max(sim_order_list)
+            name = str(max_order + 1).zfill(3)
+
+        path_to_sim_result = path_to_day_result.joinpath(name)
+        try:
+            path_to_sim_result.mkdir()
+            return path_to_sim_result
+        except FileExistsError:
+            time.sleep(0.5)
+
+    raise RuntimeError(f"FileExistsError encountered in all {max_retry} retries!")
 
 
 def extract_order(pathobj: Path):
