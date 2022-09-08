@@ -23,8 +23,7 @@ class Image:
         """
         if self.binary_image is None or update:
             sel = (self.data > low_bound) & (self.data < up_bound)
-            self.binary_image = \
-                BinaryImage(np.where(sel, 1, 0), low_bound, up_bound)
+            self.binary_image = BinaryImage(np.where(sel, 1, 0), low_bound, up_bound)
         return self.binary_image
 
     def get_grey_image(self, update: bool = False):

@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from src.model.two_fluid_model import TwoFluidModel
 
 if __name__ == "__main__":
-    date_str = '220907'
-    order_str = '004'
-    working_path = Path('../results').joinpath(date_str).joinpath(order_str)
+    date_str = '220906'
+    order_str = '008'
+    working_path = Path('../results_bjx').joinpath(date_str).joinpath(order_str)
 
     with working_directory(working_path):
         with open('model.pkl', 'rb') as file:
@@ -21,8 +21,8 @@ if __name__ == "__main__":
         print("Load model successfully!")
 
         # plt_script.P0ViProfile(model, plot_theory=True).run()
-        plt_script.PhiPressureField(model).run()
-        plt_script.VelocityField(model).run()
-        plt_script.PressureForceAxis(model, plot_theory=False).run()
-        plt_script.VelocityGrowthAxis(model, plot_theory=False).run()
-        # plt_script.FrontProfile(model, x_cpt_ratio=0.7).run()
+        # plt_script.PhiPressureField(model).run()
+        # plt_script.VelocityField(model).run()
+        # plt_script.PressureForceAxis(model, plot_theory=False).run()
+        # plt_script.VelocityGrowthAxis(model, plot_theory=False).run()
+        plt_script.FrontProfile(model, x_cpt_ratio=0.7).run()

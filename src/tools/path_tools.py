@@ -38,25 +38,27 @@ def get_save_path(res_path, day_stamp=None, name=None, max_retry=100):
     path_to_day_result = Path(res_path).joinpath(day_stamp)
     path_to_day_result.mkdir(exist_ok=True)
 
-    for _ in range(max_retry):
-        if name is None:
+    if name is None:
+        for _ in range(max_retry):
             sim_order_list = [extract_order(item) for item in get_all_dir(str(path_to_day_result))
                                                   if extract_order(item) is not None]
-
             if not sim_order_list:
                 max_order = 0
             else:
                 max_order = max(sim_order_list)
-            name = str(max_order + 1).zfill(3)
+            path_to_sim_result = path_to_day_result.joinpath(str(max_order + 1).zfill(3))
+            try:
+                path_to_sim_result.mkdir()
+                return path_to_sim_result
+            except FileExistsError:
+                time.sleep(0.5)  # retry after 0.5s
 
+        raise RuntimeError(f"FileExistsError encountered in all {max_retry} retries!")
+
+    else:
         path_to_sim_result = path_to_day_result.joinpath(name)
-        try:
-            path_to_sim_result.mkdir()
-            return path_to_sim_result
-        except FileExistsError:
-            time.sleep(0.5)
-
-    raise RuntimeError(f"FileExistsError encountered in all {max_retry} retries!")
+        path_to_sim_result.mkdir()
+        return path_to_sim_result
 
 
 def extract_order(pathobj: Path):
